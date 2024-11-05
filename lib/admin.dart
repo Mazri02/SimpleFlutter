@@ -52,8 +52,28 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
           itemBuilder: (context, index) {
             final data = documents[index].data() as Map<String, dynamic>;
             return ListTile(
-              title: Text(data['name'] ?? 'No Name'),
-              subtitle: Text(data['position'] ?? 'No Position'),
+               leading: Container(
+                width: 56, // Slightly larger than the image for border
+                height: 56,
+                padding: EdgeInsets.all(3), // Space for the border
+                decoration: BoxDecoration(
+                color: Colors.white, // Border color (can be any color)
+                shape: BoxShape.circle,
+                ),
+                child: ClipOval(
+                  child: Image.network(
+                    data['image'], // Replace with your direct image URL
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.broken_image, size: 50); // Fallback if image fails
+                    },
+                  ),
+                ),
+              ),
+              title: Text(data['Username'] ?? 'No Name'),
+              subtitle: Text(data['Userpass'] ?? 'No Position'),
               trailing: IconButton(
                 icon: Icon(Icons.delete, color: Colors.red),
                 onPressed: () => _deleteDocument(collection, documents[index].id),
