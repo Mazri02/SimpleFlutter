@@ -43,21 +43,44 @@ class _InputLoginState extends State<InputLogin> {
   }
 
   void showStatusRegister() async {
-    if(await auth.addUser(this.text, this.pass)){
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          content:
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Center(
-                  child: Text('Success')
+    if(double.tryParse(this.text) != null){
+      if(double.tryParse(this.text)! >= 2018000000 && double.tryParse(this.text)! <= 2024999999){
+         if(await auth.addStudent(this.text, this.pass)){
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              content:
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Text('Success')
+                    )
+                  ],
                 )
-              ],
-            )
-          )
-      );
+              )
+          );
+        }
+      } else if(this.text == 'root'){
+          Navigator.push(context, MaterialPageRoute(builder: (context) => Admin()));
+      } 
+    } else {
+         if(await auth.addStaff(this.text, this.pass)){
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              content:
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Text('Success')
+                    )
+                  ],
+                )
+              )
+          );
+        }
     }
   }
 
