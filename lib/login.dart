@@ -81,11 +81,13 @@ class _InputLoginState extends State<InputLogin> {
             ),
           );
         }
-      } else if(this.text == 'root'){
-          Navigator.push(context, MaterialPageRoute(builder: (context) => Admin()));
-      } 
-    } else {
-         if(await auth.addStaff(this.text, this.pass)){
+      } else {
+        if(this.text == 'root'){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => Admin()));
+        }
+      }
+    } else if(double.tryParse(this.text) == null){
+        if(await auth.addStaff(this.text, this.pass)){
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -121,7 +123,7 @@ class _InputLoginState extends State<InputLogin> {
             ),
           );
         }
-    }
+      }
   }
 
   void OpenRegistrationForm() {
