@@ -49,16 +49,36 @@ class _InputLoginState extends State<InputLogin> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              content:
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Center(
-                      child: Text('Success')
-                    )
-                  ],
-                )
-              )
+              title: Text("Account Created !"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            "Your Account has been successfully created! You can use your credentials to login",
+                            softWrap: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Ok'),
+                  ),
+                ),
+              ],
+            ),
           );
         }
       } else if(this.text == 'root'){
@@ -69,16 +89,36 @@ class _InputLoginState extends State<InputLogin> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              content:
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Center(
-                      child: Text('Success')
-                    )
-                  ],
-                )
-              )
+              title: Text("Account Created !"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            "Your Account has been successfully created! You can use your credentials to login",
+                            softWrap: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Ok'),
+                  ),
+                ),
+              ],
+            ),
           );
         }
     }
