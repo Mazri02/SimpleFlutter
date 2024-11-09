@@ -4,6 +4,7 @@ import 'package:basic_app/staff.dart';
 import 'package:basic_app/api/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:basic_app/api/auth.dart';
+import 'package:flutter_session_manager/flutter_session_manager.dart';
 
 class MyPage extends StatelessWidget {
    @override
@@ -36,6 +37,7 @@ class _InputLoginState extends State<InputLogin> {
   final Controller = TextEditingController();
   Authentication auth = Authentication();
   late Future dialog;
+  var session = SessionManager();
 
   @override
   void dispose(){
@@ -43,22 +45,87 @@ class _InputLoginState extends State<InputLogin> {
   }
 
   void showStatusRegister() async {
-    if(await auth.addUser(this.text, this.pass)){
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          content:
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Center(
-                  child: Text('Success')
-                )
+    if(double.tryParse(this.text) != null){
+      if(double.tryParse(this.text)! >= 2018000000 && double.tryParse(this.text)! <= 2024999999){
+         if(await auth.addStudent(this.text, this.pass)){
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text("Account Created !"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            "Your Account has been successfully created! You can use your credentials to login",
+                            softWrap: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Ok'),
+                  ),
+                ),
               ],
-            )
-          )
-      );
-    }
+            ),
+          );
+        }
+      } else {
+        if(this.text == 'root'){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => Admin()));
+        }
+      }
+    } else if(double.tryParse(this.text) == null){
+        if(await auth.addStaff(this.text, this.pass)){
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text("Account Created !"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            "Your Account has been successfully created! You can use your credentials to login",
+                            softWrap: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Ok'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      }
   }
 
   void OpenRegistrationForm() {
@@ -154,7 +221,6 @@ class _InputLoginState extends State<InputLogin> {
               this.text = text
           },
         ),
-        Text(this.text),
         TextField(
           obscureText: this.showPass,
           onChanged: (text) => {

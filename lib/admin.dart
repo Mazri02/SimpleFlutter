@@ -1,6 +1,9 @@
 import 'package:basic_app/login.dart';
+import 'package:basic_app/staff.dart';
+import 'package:basic_app/student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_session_manager/flutter_session_manager.dart';
 
 class Admin extends StatelessWidget {
   @override
@@ -22,6 +25,7 @@ class AdminInterface extends StatefulWidget {
 
 class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  var session = SessionManager();
 
   @override
   void initState() {
@@ -40,25 +44,37 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
   }
 
   Widget _buildList(String collection) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection(collection).snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
-        }
-        final documents = snapshot.data!.docs;
-        return ListView.builder(
-          itemCount: documents.length,
-          itemBuilder: (context, index) {
-            final data = documents[index].data() as Map<String, dynamic>;
-            return ListTile(
-               leading: Container(
+  return StreamBuilder<QuerySnapshot>(
+    stream: FirebaseFirestore.instance.collection(collection).snapshots(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return Center(child: CircularProgressIndicator());
+      }
+      final documents = snapshot.data!.docs;
+      return ListView.builder(
+        itemCount: documents.length,
+        itemBuilder: (context, index) {
+          final data = documents[index].data() as Map<String, dynamic>;
+          return GestureDetector(
+            onTap: () {
+              session.set("AdminPrivi", "true");
+              session.set("SeshID", documents[index].id);
+              print("Clicked item from $collection collection");
+              // Use the collection name to determine the next action
+              if (collection == 'staff') {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Staff()));
+              } else if (collection == 'student') {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Student()));
+              }
+            },
+            child: ListTile(
+              leading: Container(
                 width: 56, // Slightly larger than the image for border
                 height: 56,
                 padding: EdgeInsets.all(3), // Space for the border
                 decoration: BoxDecoration(
-                color: Colors.white, // Border color (can be any color)
-                shape: BoxShape.circle,
+                  color: Colors.white, // Border color (can be any color)
+                  shape: BoxShape.circle,
                 ),
                 child: ClipOval(
                   child: Image.network(
@@ -78,12 +94,13 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
                 icon: Icon(Icons.delete, color: Colors.red),
                 onPressed: () => _deleteDocument(collection, documents[index].id),
               ),
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+          );
+        },
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +110,8 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
           children: <Widget>[
             IconButton(
               onPressed: () => {
+                session.destroy(),
+                session.remove("AdminPrivi"),
                 Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()))
               },
               icon: Icon(Icons.arrow_circle_left_outlined),
