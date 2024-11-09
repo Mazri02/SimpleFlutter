@@ -4,6 +4,7 @@ import 'package:basic_app/staff.dart';
 import 'package:basic_app/api/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:basic_app/api/auth.dart';
+import 'package:flutter_session_manager/flutter_session_manager.dart';
 
 class MyPage extends StatelessWidget {
    @override
@@ -36,6 +37,7 @@ class _InputLoginState extends State<InputLogin> {
   final Controller = TextEditingController();
   Authentication auth = Authentication();
   late Future dialog;
+  var session = SessionManager();
 
   @override
   void dispose(){
@@ -219,7 +221,6 @@ class _InputLoginState extends State<InputLogin> {
               this.text = text
           },
         ),
-        Text(this.text),
         TextField(
           obscureText: this.showPass,
           onChanged: (text) => {
