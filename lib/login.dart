@@ -9,13 +9,17 @@ import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class MyPage extends StatelessWidget {
+  const MyPage({super.key});
+
   @override
   Widget build(BuildContext Context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login Page')),
-      body: Column(children: <Widget>[
-        Padding(padding: EdgeInsets.all(20), child: InputLogin())
-      ], mainAxisAlignment: MainAxisAlignment.center),
+      appBar: AppBar(title: const Text('Login Page')),
+      body: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(padding: EdgeInsets.all(20), child: InputLogin())
+          ]),
     );
   }
 }
@@ -35,12 +39,12 @@ class _InputLoginState extends State<InputLogin> {
   late Future dialog;
   var session = SessionManager();
 
-  final FlutterAppAuth appAuth = FlutterAppAuth();
-  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  final FlutterAppAuth appAuth = const FlutterAppAuth();
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   Future<void> _login() async {
     try {
-      final AuthorizationTokenResponse? result =
+      final AuthorizationTokenResponse result =
           await appAuth.authorizeAndExchangeCode(
         AuthorizationTokenRequest(
           'your_client_id',
@@ -67,19 +71,19 @@ class _InputLoginState extends State<InputLogin> {
   }
 
   void showStatusRegister() async {
-    if (double.tryParse(this.text) != null) {
-      if (double.tryParse(this.text)! >= 2018000000 &&
-          double.tryParse(this.text)! <= 2024999999) {
-        if (await auth.addStudent(this.text, this.pass)) {
+    if (double.tryParse(text) != null) {
+      if (double.tryParse(text)! >= 2018000000 &&
+          double.tryParse(text)! <= 2024999999) {
+        if (await auth.addStudent(text, pass)) {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text("Account Created !"),
+              title: const Text("Account Created !"),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    child: Row(
+                    child: const Row(
                       children: [
                         Flexible(
                           child: Text(
@@ -99,7 +103,7 @@ class _InputLoginState extends State<InputLogin> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text('Ok'),
+                    child: const Text('Ok'),
                   ),
                 ),
               ],
@@ -107,22 +111,22 @@ class _InputLoginState extends State<InputLogin> {
           );
         }
       } else {
-        if (this.text == 'root') {
+        if (text == 'root') {
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => Admin()));
         }
       }
-    } else if (double.tryParse(this.text) == null) {
-      if (await auth.addStaff(this.text, this.pass)) {
+    } else if (double.tryParse(text) == null) {
+      if (await auth.addStaff(text, pass)) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text("Account Created !"),
+            title: const Text("Account Created !"),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  child: Row(
+                  child: const Row(
                     children: [
                       Flexible(
                         child: Text(
@@ -142,7 +146,7 @@ class _InputLoginState extends State<InputLogin> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('Ok'),
+                  child: const Text('Ok'),
                 ),
               ),
             ],
@@ -156,12 +160,12 @@ class _InputLoginState extends State<InputLogin> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Center(child: Text("Create an Account")),
+        title: const Center(child: Text("Create an Account")),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 suffixIcon: Icon(Icons.account_circle),
                 labelText: "Staff ID / Student ID",
               ),
@@ -169,9 +173,9 @@ class _InputLoginState extends State<InputLogin> {
                 this.text = text;
               }),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 suffixIcon: Icon(Icons.lock),
                 labelText: "Insert Password",
               ),
@@ -179,9 +183,9 @@ class _InputLoginState extends State<InputLogin> {
                 this.pass = pass;
               }),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 suffixIcon: Icon(Icons.lock_clock),
                 labelText: "Confirm Password",
               ),
@@ -189,15 +193,14 @@ class _InputLoginState extends State<InputLogin> {
                 this.pass = pass;
               }),
             ),
-            SizedBox(height: 10),
-            Container(
+            const SizedBox(height: 10),
+            SizedBox(
               width: double.infinity, // Makes the button take up the full width
               child: ElevatedButton(
                 onPressed: () {
                   showStatusRegister();
                   Navigator.of(context).pop();
                 },
-                child: Text('Sign Up'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.blue, // Text color
@@ -206,6 +209,7 @@ class _InputLoginState extends State<InputLogin> {
                     borderRadius: BorderRadius.circular(10), // Rounded corners
                   ),
                 ),
+                child: Text('Sign Up'),
               ),
             )
           ],
@@ -215,18 +219,18 @@ class _InputLoginState extends State<InputLogin> {
   }
 
   void CheckPrivileges() async {
-    if (double.tryParse(this.text) != null) {
-      if (double.tryParse(this.text)! >= 2018000000 &&
-          double.tryParse(this.text)! <= 2024999999) {
-        if (await auth.getUser(this.text, this.pass)) {
+    if (double.tryParse(text) != null) {
+      if (double.tryParse(text)! >= 2018000000 &&
+          double.tryParse(text)! <= 2024999999) {
+        if (await auth.getUser(text, pass)) {
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => Student()));
         }
       }
-    } else if (this.text == 'root') {
+    } else if (text == 'root') {
       Navigator.push(context, MaterialPageRoute(builder: (context) => Admin()));
     } else {
-      if (await auth.getUser(this.text, this.pass)) {
+      if (await auth.getUser(text, pass)) {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => Staff()));
       }
@@ -239,29 +243,29 @@ class _InputLoginState extends State<InputLogin> {
       children: <Widget>[
         TextField(
           controller: Controller,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
               prefixIcon: Icon(Icons.account_circle), labelText: "Username"),
           onChanged: (text) => {this.text = text},
         ),
         TextField(
-          obscureText: this.showPass,
+          obscureText: showPass,
           onChanged: (text) => {
             setState(() {
-              this.pass = text;
+              pass = text;
             })
           },
           decoration: InputDecoration(
-              prefixIcon: Icon(Icons.lock),
+              prefixIcon: const Icon(Icons.lock),
               labelText: "Password",
               suffixIcon: IconButton(
                   icon: showPass
-                      ? Icon(Icons.visibility)
-                      : Icon(Icons.visibility_off),
+                      ? const Icon(Icons.visibility)
+                      : const Icon(Icons.visibility_off),
                   tooltip: "Show Password",
                   splashColor: Colors.blue,
                   onPressed: () => {
                         setState(() {
-                          this.showPass = !this.showPass;
+                          showPass = !showPass;
                         })
                       })),
         ),
@@ -270,45 +274,45 @@ class _InputLoginState extends State<InputLogin> {
             child: Column(
               children: [
                 Container(
-                    margin: EdgeInsets.only(top: 20.0, bottom: 20.0),
+                    margin: const EdgeInsets.only(top: 20.0, bottom: 20.0),
                     child: ElevatedButton(
                       onPressed: () => {
                         CheckPrivileges(),
                       },
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Text("Login"),
-                        SizedBox(width: 10),
-                        Icon(Icons.arrow_circle_right)
-                      ]),
                       style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
+                        shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(5.0),
                                 topRight: Radius.circular(5.0),
                                 bottomLeft: Radius.circular(5.0),
                                 bottomRight: Radius.circular(5.0))),
                       ),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Text("Login"),
+                        SizedBox(width: 10),
+                        Icon(Icons.arrow_circle_right)
+                      ]),
                     )),
-                SizedBox(height: 20), // Add some spacing between buttons
+                const SizedBox(height: 20), // Add some spacing between buttons
                 ElevatedButton(
-                  onPressed: _login, // Call the SSO login method
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text("Login with SSO"),
-                    SizedBox(width: 10),
-                    Icon(Icons.login)
-                  ]),
+                  onPressed: _login,
                   style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(5.0),
                             topRight: Radius.circular(5.0),
                             bottomLeft: Radius.circular(5.0),
                             bottomRight: Radius.circular(5.0))),
-                  ),
+                  ), // Call the SSO login method
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Text("Login with SSO"),
+                    SizedBox(width: 10),
+                    Icon(Icons.login)
+                  ]),
                 ),
                 GestureDetector(
-                  onTap: () => this.OpenRegistrationForm(),
-                  child: Text('First Time? Register Here'),
+                  onTap: () => OpenRegistrationForm(),
+                  child: const Text('First Time? Register Here'),
                 )
               ],
             ))
