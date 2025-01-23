@@ -2,11 +2,11 @@ import 'package:basic_app/student.dart';
 import 'package:basic_app/admin.dart';
 import 'package:basic_app/staff.dart';
 import 'package:basic_app/api/auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:basic_app/api/auth.dart';
 import 'package:flutter_session_manager/flutter_session_manager.dart';
-import 'package:flutter_appauth/flutter_appauth.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class MyPage extends StatelessWidget {
   const MyPage({super.key});
@@ -38,30 +38,37 @@ class _InputLoginState extends State<InputLogin> {
   Authentication auth = Authentication();
   late Future dialog;
   var session = SessionManager();
+  final _auth = FirebaseAuth.instance;
 
-  final FlutterAppAuth appAuth = const FlutterAppAuth();
-  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
-
-  Future<void> _login() async {
+  Future<void> _login(BuildContext context) async {
     try {
-      final AuthorizationTokenResponse result =
-          await appAuth.authorizeAndExchangeCode(
-        AuthorizationTokenRequest(
-          'your_client_id',
-          'your_redirect_uri',
-          issuer: 'https://your_issuer',
-          scopes: ['openid', 'profile', 'email'],
-        ),
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        // The user canceled the sign-in
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+        accessToken: googleAuth.accessToken,
       );
 
-      if (result != null) {
-        await secureStorage.write(
-            key: 'access_token', value: result.accessToken);
-        await secureStorage.write(key: 'id_token', value: result.idToken);
-        // Navigate to the next page or perform other actions
-      }
+      UserCredential userCredential = await _auth.signInWithCredential(credential);
+      print("Logged in as: ${userCredential.user?.displayName}");
+
+      // Navigate to the Student page
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Student()),
+      );
     } catch (e) {
-      print('Error during SSO login: $e');
+      print(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Login failed: ${e.toString()}"),
+        ),
+      );
     }
   }
 
@@ -223,8 +230,7 @@ class _InputLoginState extends State<InputLogin> {
       if (double.tryParse(text)! >= 2018000000 &&
           double.tryParse(text)! <= 2024999999) {
         if (await auth.getUser(text, pass)) {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Student()));
+          Navigator.push(context, MaterialPageRoute(builder: (context) => Student()));
         }
       }
     } else if (text == 'root') {
@@ -274,7 +280,7 @@ class _InputLoginState extends State<InputLogin> {
             child: Column(
               children: [
                 Container(
-                    margin: const EdgeInsets.only(top: 20.0, bottom: 20.0),
+                    margin: const EdgeInsets.only(top: 20.0),
                     child: ElevatedButton(
                       onPressed: () => {
                         CheckPrivileges(),
@@ -293,9 +299,10 @@ class _InputLoginState extends State<InputLogin> {
                         Icon(Icons.arrow_circle_right)
                       ]),
                     )),
-                const SizedBox(height: 20), // Add some spacing between buttons
                 ElevatedButton(
-                  onPressed: _login,
+                  onPressed: () async {
+                    await _login(context);
+                  },
                   style: ElevatedButton.styleFrom(
                     shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.only(
