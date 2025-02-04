@@ -1,0 +1,2 @@
+C:/laragon/www/SimpleFlutter/android/app/.cxx/RelWithDebInfo/2b1c6w5r/x86/CMakeFiles/edit_cache.dir
+C:/laragon/www/SimpleFlutter/android/app/.cxx/RelWithDebInfo/2b1c6w5r/x86/CMakeFiles/rebuild_cache.dir

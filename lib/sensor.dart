@@ -6,7 +6,10 @@ import 'package:basic_app/login.dart';
 import 'package:flutter_session_manager/flutter_session_manager.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'dart:io';
 
 class SearchPage extends StatelessWidget {
@@ -28,7 +31,7 @@ class AdminInterface extends StatefulWidget {
 }
 
 class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+ late TabController _tabController;
   var session = SessionManager();
   int _selectedIndex = 1;
   final ImagePicker _picker = ImagePicker();
@@ -36,14 +39,23 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
   Position? _currentPosition;
   bool _showAccelerometerData = false;
   String _sensorType = '';
+  FlutterSoundRecorder? _soundRecorder;
+  bool _isRecorderInitialized = false;
+  bool _isRecording = false;
+  double _audioLevel = 0.0;
+  double _accelerometerValue = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _initRecorder();
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
+    _soundRecorder?.closeRecorder();
     super.dispose();
   }
 
@@ -72,8 +84,8 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
     final XFile? selectedImage = await _picker.pickImage(source: ImageSource.camera);
     setState(() {
       _image = selectedImage;
-      _currentPosition = null; // Reset location data when selecting an image
-      _showAccelerometerData = false; // Reset accelerometer data when selecting an image
+      _currentPosition = null;
+      _showAccelerometerData = false;
       _sensorType = 'Camera';
     });
   }
@@ -98,13 +110,13 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
     if (permission == LocationPermission.deniedForever) {
       return Future.error(
           'Location permissions are permanently denied, we cannot request permissions.');
-    } 
+    }
 
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     setState(() {
       _currentPosition = position;
-      _image = null; // Reset image data when selecting location
-      _showAccelerometerData = false; // Reset accelerometer data when selecting location
+      _image = null;
+      _showAccelerometerData = false;
       _sensorType = 'Geolocator';
     });
   }
@@ -112,11 +124,54 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
   void _toggleAccelerometer() {
     setState(() {
       _showAccelerometerData = !_showAccelerometerData;
-      _image = null; // Reset image data when toggling accelerometer
-      _currentPosition = null; // Reset location data when toggling accelerometer
+      _image = null;
+      _currentPosition = null;
       _sensorType = _showAccelerometerData ? 'Accelerometer' : '';
     });
+    if (_showAccelerometerData) {
+      accelerometerEvents.listen((AccelerometerEvent event) {
+        setState(() {
+          _accelerometerValue = event.x.abs() + event.y.abs() + event.z.abs();
+        });
+      });
+    }
   }
+
+Future<void> _initRecorder() async {
+    _soundRecorder = FlutterSoundRecorder();
+    final status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
+      throw RecordingPermissionException('Microphone permission not granted');
+    }
+    await _soundRecorder!.openRecorder();
+    _isRecorderInitialized = true;
+  }
+
+Future<void> _toggleRecording() async {
+  if (!_isRecorderInitialized) return;
+
+  if (_soundRecorder!.isStopped) {
+    await _soundRecorder!.startRecorder(
+      toFile: 'temp_recording.aac',
+      codec: Codec.aacADTS,
+      audioSource: AudioSource.microphone,
+    );
+    _soundRecorder!.setSubscriptionDuration(Duration(milliseconds: 100));
+    _soundRecorder!.onProgress!.listen((event) {
+      setState(() {
+        _audioLevel = event.decibels ?? 0.0;
+      });
+    });
+    setState(() {
+      _isRecording = true;
+    });
+  } else {
+    await _soundRecorder!.stopRecorder();
+    setState(() {
+      _isRecording = false;
+    });
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -143,8 +198,8 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: (){}, 
-                  child: Icon(Icons.mic)
+                  onPressed: _toggleRecording,
+                  child: Icon(_isRecording ? Icons.mic_off : Icons.mic),
                 ),
                 SizedBox(width: 10),
                 ElevatedButton(
@@ -164,32 +219,66 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
               ],
             ),
             SizedBox(height: 20),
-            if (_sensorType.isNotEmpty) 
+            if (_isRecording)
               Column(
                 children: [
-                  Text('$_sensorType', style: Theme.of(context).textTheme.headlineMedium),
+                  Text('Audio Level: ${_audioLevel.toStringAsFixed(2)} dB'),
                   SizedBox(height: 20),
+                  SfLinearGauge(
+                    minimum: 0,
+                    maximum: 120,
+                    ranges: [
+                      LinearGaugeRange(startValue: 0, endValue: 60, color: Colors.green),
+                      LinearGaugeRange(startValue: 60, endValue: 90, color: Colors.orange),
+                      LinearGaugeRange(startValue: 90, endValue: 120, color: Colors.red),
+                    ],
+                    markerPointers: [
+                      LinearShapePointer(value: _audioLevel),
+                    ],
+                  ),
                 ],
               ),
-            if (_image != null)
-              Image.file(File(_image!.path)), // Display the selected image
+            SizedBox(height: 20),
             if (_currentPosition != null)
-              Text('Latitude: ${_currentPosition!.latitude}, Longitude: ${_currentPosition!.longitude}'),
+              Text('Location: Lat: ${_currentPosition!.latitude}, Lon: ${_currentPosition!.longitude}'),
             if (_showAccelerometerData)
-              StreamBuilder<AccelerometerEvent>(
-                stream: accelerometerEvents,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Text("Waiting for accelerometer data...");
-                  }
-                  return Column(
-                    children: [
-                      Text("X: ${snapshot.data?.x.toStringAsFixed(2)}"),
-                      Text("Y: ${snapshot.data?.y.toStringAsFixed(2)}"),
-                      Text("Z: ${snapshot.data?.z.toStringAsFixed(2)}"),
+              Column(
+                children: [
+                  StreamBuilder<AccelerometerEvent>(
+                    stream: accelerometerEvents,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return Text('Accelerometer: x=${snapshot.data!.x}, y=${snapshot.data!.y}, z=${snapshot.data!.z}');
+                      } else {
+                        return Text('Waiting for accelerometer data...');
+                      }
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  SfRadialGauge(
+                    axes: <RadialAxis>[
+                      RadialAxis(
+                        minimum: 0,
+                        maximum: 30,
+                        pointers: <GaugePointer>[
+                          NeedlePointer(value: _accelerometerValue),
+                        ],
+                        annotations: <GaugeAnnotation>[
+                          GaugeAnnotation(
+                            widget: Container(
+                              child: Text(
+                                '$_accelerometerValue',
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            angle: 90,
+                            positionFactor: 0.5,
+                          ),
+                        ],
+                      ),
                     ],
-                  );
-                },
+                  ),
+                ],
               ),
           ],
         ),
@@ -207,9 +296,7 @@ class _AdminInterfaceState extends State<AdminInterface> with SingleTickerProvid
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.purple[800], 
-        onTap: (index) => {
-          _onItemTapped(index)
-        },
+        onTap: _onItemTapped,
       ),
     );
   }
