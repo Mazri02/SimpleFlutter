@@ -241,6 +241,7 @@ Future<void> _toggleRecording() async {
             SizedBox(height: 20),
             if (_currentPosition != null)
               Text('Location: Lat: ${_currentPosition!.latitude}, Lon: ${_currentPosition!.longitude}'),
+            SizedBox(height: 20),
             if (_showAccelerometerData)
               Column(
                 children: [
@@ -280,6 +281,9 @@ Future<void> _toggleRecording() async {
                   ),
                 ],
               ),
+            SizedBox(height: 20),
+            if (_image != null)
+              Center(child: Image.file(File(_image!.path))),
           ],
         ),
       ),
